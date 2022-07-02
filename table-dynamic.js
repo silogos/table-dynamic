@@ -1,3 +1,9 @@
+/*
+ *	Table Dynamic Javascript
+ *	Date: 6/28/2022
+ *	Created by: Amin Yusuf - https://silogos.github.io/me/
+ */
+
 class TableDynamic {
   constructor({
     elem,
