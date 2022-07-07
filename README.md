@@ -1,7 +1,11 @@
 # table-dynamic
 Table Dynamic Javascript
 
-
+# Preview
+## Table
+![](https://github.com/silogos/table-dynamic/raw/main/Screen%20Shot%202022-07-07%20at%2022.44.35.png)
+## Table Loading
+![](https://github.com/silogos/table-dynamic/raw/main/Screen%20Shot%202022-07-07%20at%2022.48.11.png)
 # Usage
 
 ## HTML
@@ -23,7 +27,7 @@ Table Dynamic Javascript
 </html>
 ```
 
-#JavaScript
+## JavaScript
 ```js
 // script.js
 const initialData = {
