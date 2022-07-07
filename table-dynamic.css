@@ -5,33 +5,48 @@
 */
 
 .table-dynamic {
+  position: relative;
   width: 100%;
   max-width: 100%;
   font-size: 12px;
 }
+
 .table-dynamic .table-wrapper {
   width: 100%;
   overflow-x: auto;
 }
+
 .table-dynamic table {
   width: 100%;
 }
+
 .table-dynamic thead {
   height: 46px;
   color: #727272;
 }
-.table-dynamic thead > tr {
+
+.table-dynamic thead>tr {
   background: #F1F8FD !important;
 }
+
 .table-dynamic th {
   vertical-align: middle;
 }
-.table-dynamic th, td {
+
+.table-dynamic th,
+td {
   vertical-align: top;
   text-align: center;
   border: 0.5px solid #DBD9D9;
   padding: 14px 10px;
 }
+
+.table-dynamic .no-data>td,
+.table-dynamic .loading>td {
+  text-align: center;
+  vertical-align: middle;
+}
+
 .table-dynamic .table-navigation {
   display: flex;
   justify-content: space-between;
@@ -39,19 +54,23 @@
   margin: 10px 0;
   font-size: 13px;
 }
+
 .table-dynamic .total-count {
   color: #979797;
 }
+
 .table-dynamic .navigation {
   display: inline-block;
   padding-left: 0;
   border-radius: 4px;
 }
+
 .table-dynamic .page-list {
   display: flex;
   list-style: none;
   height: 30px;
 }
+
 .table-dynamic .page-item {
   cursor: default;
   display: flex;
@@ -63,23 +82,49 @@
   border: 1px solid #dddddd;
   margin-right: -1px;
 }
+
 .table-dynamic .page-item:first-child {
   border-bottom-left-radius: 4px;
   border-top-left-radius: 4px;
 }
+
 .table-dynamic .page-item:last-child {
   margin-right: 0;
   border-bottom-right-radius: 4px;
   border-top-right-radius: 4px;
 }
+
 .table-dynamic .page-item.active {
   background-color: #0088cc;
   color: #ffffff;
 }
+
 .table-dynamic .page-item.disabled {
   cursor: not-allowed;
 }
+
 .table-dynamic .page-item.page-link {
   cursor: pointer;
 }
 
+.table-dynamic.show-loading .table-loading {
+  display: flex;
+}
+
+.table-loading {
+  display: none;
+  position: absolute;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgb(255 255 255 / 50%);
+  font-size: 18px;
+  color: black;
+}
+
+.table-loading::before {
+  content: "Loading...";
+}
