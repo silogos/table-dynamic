@@ -9,29 +9,36 @@ class TableDynamic {
     elem,
     options: {
       fields = [],
-      data = [],
-      pagination = {
-        totalData: 0,
-        totalPage: 1,
-        limit: 10,
-        page: 1
-      },
       customRow,
       onChange,
-      loading = false
+      withLoading = false,
+      withPagination = false,
+      initialState = {
+        data: [],
+        pagination: {
+          totalData: 0,
+          totalPage: 1,
+          limit: 10,
+          page: 1
+        }
+      }
     }
   }) {
     const tableSelector = document.querySelector(elem);
     if (tableSelector.nodeName !== 'TABLE') {
       throw new Error('Element node name must be table')
     }
+    if (fields.length < 1) {
+      throw new Error('table must have field')
+    }
 
     this.fields = fields;
-    this.data = data;
-    this.pagination = pagination;
     this.customRow = customRow;
     this.onChange = onChange;
-    this.isLoading = loading;
+    this.data = initialState.data;
+    this.pagination = withPagination ? initialState.pagination : null;
+    this.isLoading = withLoading ? true : null;
+    this.withPagination = withPagination;
 
     this.container = document.createElement('div');
     this.container.tableDynamic = this;
@@ -44,15 +51,24 @@ class TableDynamic {
     this.container.append(this.tableWrapper);
 
     // Append navigation to container
-    this.nav = document.createElement('nav');
-    this.nav.classList.add('table-navigation')
-    this.container.append(this.nav)
+    if(withPagination) {
+      this.nav = document.createElement('nav');
+      this.nav.classList.add('table-navigation')
+      this.container.append(this.nav)
+    }
+
+    // Append loading to container
+    if(withLoading) {
+      this.loading = document.createElement('div');
+      this.loading.classList.add('table-loading')
+      this.container.append(this.loading)
+    }
 
     // Clone element selector and append to table wrapper
     this.table = tableSelector.cloneNode();
     this.tableWrapper.append(this.table);
 
-    // Append table eolgroup
+    // Append table colgroup
     this.tColgroup = document.createElement('colgroup');
     this.table.appendChild(this.tColgroup);
 
@@ -67,18 +83,27 @@ class TableDynamic {
     // replace element selector
     tableSelector.replaceWith(this.container);
 
+    this.renderTable();
+  }
+
+  renderTable() {
     this.renderColgroup();
     this.renderHeader();
-    this.renderBody();
-    this.renderNav();
+    this.withPagination && this.renderNav();
+    
+    if(this.isLoading) {
+      return this.loadLoading()
+    }
+
+    this.loadData();
+    this.loadTotal()
+    this.loadPagination()
   }
 
   renderColgroup() {
-    if (this.fields.length < 1) return;
-
     this.fields.forEach((field) => {
       const col = document.createElement('col')
-      if(field.width) {
+      if (field.width) {
         col.style = `width: ${field.width}`;
       }
       this.tColgroup.append(col)
@@ -86,7 +111,6 @@ class TableDynamic {
   }
 
   renderHeader() {
-    if (this.fields.length < 1) return;
     const tRow = document.createElement('tr')
 
     this.fields.forEach((field) => {
@@ -98,99 +122,31 @@ class TableDynamic {
     this.tHead.append(tRow);
   }
 
-  renderBody() {
-    if(this.isLoading) {
-      return this.renderLoading()
-    }
-
-    if (this.data.length < 1) {
-      return this.renderNoData();
-    }
-    
-    this.tBody.innerHTML = '';
-    this.data.forEach((datum, index) => {
-      const tRow = document.createElement('tr');
-
-      this.fields.forEach((field) => {
-        const td = document.createElement('td')
-        if (field.render) {
-          field.render(td, datum, index)
-        } else if (field.dataIndex) {
-          td.innerText = datum[field.dataIndex];
-        }
-        tRow.append(td)
-      })
-      
-      if (this.customRow) {
-        this.customRow(tRow, datum)
-      }
-
-      this.tBody.append(tRow)
-    })
-  }
-
-  renderNoData() {
-    this.tBody.innerHTML = '';
-    const tRow = document.createElement('tr')
-    const td = document.createElement('td')
-    tRow.append(td);
-
-    td.setAttribute('colspan', '100%')
-    td.classList.add('center')
-    td.innerText = 'No Data Available'
-    this.tBody.appendChild(tRow)
-  }
-
-  renderLoading() {
-    this.tBody.innerHTML = '';
-    const tRow = document.createElement('tr')
-    const td = document.createElement('td')
-    tRow.append(td);
-
-    td.setAttribute('colspan', '100%')
-    td.classList.add('center')
-    td.innerText = 'Loading...'
-    this.tBody.appendChild(tRow)
-  }
-
   renderNav() {
     this.nav.innerHTML = `
         <label class='total-count'>-</label>
         <ul class="page-list"></ul>
     `;
-
-    this.renderTotal()
-    this.renderPagination()
   }
 
-  getRangeTotal() {
-    let {
-      page,
-      limit,
-      totalData
-    } = this.pagination
-    let range1 = 0;
-    let range2 = 0;
+  loadTotal() {
+    const totalCountElem = this.nav.querySelector('.total-count')
+    let { page, limit, totalData } = this.pagination
+    let firstItemNumber = 0;
+    let lastItemNumber = 0;
 
-    if (this.pagination.totalData > 0) {
-      range1 = ((page - 1) * limit) + 1
-      range2 = (range1 + limit - 1);
-      if (range2 > totalData) {
-        range2 = totalData;
+    if (totalData > 0) {
+      firstItemNumber = ((page - 1) * limit) + 1
+      lastItemNumber = (firstItemNumber + limit - 1);
+      if (lastItemNumber > totalData) {
+        lastItemNumber = totalData;
       }
     }
 
-    return [range1, range2];
+    totalCountElem.innerText = `Showing ${firstItemNumber} to ${lastItemNumber} of ${totalData} entries`
   }
 
-  renderTotal() {
-    const totalCountElem = this.nav.querySelector('.total-count')
-    const range = this.getRangeTotal();
-
-    totalCountElem.innerText = `Showing ${range[0]} to ${range[1]} of ${this.pagination.totalData} entries`
-  }
-
-  renderPagination() {
+  loadPagination() {
     let {
       page,
       totalPage
@@ -199,16 +155,16 @@ class TableDynamic {
     paginationElem.innerHTML = '';
     const startPage = (page - 2) > 1 ? page - 2 : 1;
     const endPage = startPage + 4 < totalPage ? startPage + 4 : totalPage;
-    const createLink = function(navPage, content, status) {
+    const createLink = function (navPage, content, status) {
       const li = document.createElement('li')
       li.classList.add('page-item', 'page-link')
       li.innerHTML = content;
       li.dataset.navPage = navPage;
 
-      if (status === 'disable'){
+      if (status === 'disable') {
         li.classList.add('disabled');
         li.classList.remove('page-link')
-      } else if (status === 'active'){
+      } else if (status === 'active') {
         li.classList.add('active');
         li.classList.remove('page-link')
       }
@@ -249,36 +205,93 @@ class TableDynamic {
     }
 
     document.querySelectorAll(".page-link").forEach(a => {
-      a.addEventListener("click", () => this.onChange && this.onChange({ page: a.dataset.navPage }))
+      a.addEventListener("click", () => this.onChange && this.onChange({
+        page: a.dataset.navPage
+      }))
     })
   }
 
-  setData(data) {
-    this.data = data;
-    this.renderBody()
+  loadData() {
+    this.tBody.innerHTML = '';
+
+    if (this.data.length < 1) {
+      this.tBody.append(this.generateRow('nodata'));
+      return;
+    }
+
+    this.data.forEach((datum, index) => {
+      const tRow = document.createElement('tr');
+
+      this.fields.forEach((field) => {
+        const td = document.createElement('td')
+        if (field.render) {
+          field.render(td, datum, index)
+        } else if (field.dataIndex) {
+          td.innerText = datum[field.dataIndex];
+        }
+        tRow.append(td)
+      })
+
+      if (this.customRow) {
+        this.customRow(tRow, datum)
+      }
+
+      this.tBody.append(tRow)
+    })
   }
 
-  setPagination(data) {
-    this.pagination = data;
-    this.renderTotal()
-    this.renderPagination()
+  generateRow(type) {
+    const content = {
+      nodata: 'No Data Available',
+    }
+
+    const tRow = document.createElement('tr')
+    tRow.classList.add('no-data')
+    const td = document.createElement('td')
+    tRow.append(td);
+
+    td.setAttribute('colspan', '100%')
+    td.innerText = content[type]
+
+    return tRow
+  }
+
+  loadLoading() {
+    if(this.isLoading) {
+      this.container.classList.add('show-loading')
+      this.tBody.innerHTML = `
+        <div style="height: 100px" />
+      `;
+    } else {
+      this.container.classList.remove('show-loading')
+      this.reload()
+    }
+  }
+
+  reload() {
+    this.loadData();
+    if (this.withPagination) {
+      this.loadPagination();
+      this.loadTotal();
+    }
+  }
+
+  setState({
+    data,
+    pagination
+  }) {
+    this.data = data;
+    if (this.withPagination) {
+      this.pagination = pagination;
+    }
+
+    if(!this.isLoading) {
+      this.reload();
+    }
   }
 
   setLoading(value) {
     this.isLoading = value;
-    this.renderBody()
-  }
-
-  resetTable() {
-    this.data = [];
-    this.pagination = {
-      totalData: 0,
-      totalPage: 1,
-      limit: 10,
-      page: 1
-    };
-    this.renderBody()
-    this.renderTotal()
-    this.renderPagination()
+    this.loadLoading()
   }
 }
