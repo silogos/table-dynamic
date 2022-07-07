@@ -51,14 +51,14 @@ class TableDynamic {
     this.container.append(this.tableWrapper);
 
     // Append navigation to container
-    if(withPagination) {
+    if (withPagination) {
       this.nav = document.createElement('nav');
       this.nav.classList.add('table-navigation')
       this.container.append(this.nav)
     }
 
     // Append loading to container
-    if(withLoading) {
+    if (withLoading) {
       this.loading = document.createElement('div');
       this.loading.classList.add('table-loading')
       this.container.append(this.loading)
@@ -90,14 +90,12 @@ class TableDynamic {
     this.renderColgroup();
     this.renderHeader();
     this.withPagination && this.renderNav();
-    
-    if(this.isLoading) {
+
+    if (this.isLoading) {
       return this.loadLoading()
     }
 
-    this.loadData();
-    this.loadTotal()
-    this.loadPagination()
+    this.reload();
   }
 
   renderColgroup() {
@@ -147,10 +145,7 @@ class TableDynamic {
   }
 
   loadPagination() {
-    let {
-      page,
-      totalPage
-    } = this.pagination
+    let { page, totalPage } = this.pagination
     const paginationElem = this.nav.querySelector('.page-list');
     paginationElem.innerHTML = '';
     const startPage = (page - 2) > 1 ? page - 2 : 1;
@@ -257,7 +252,7 @@ class TableDynamic {
   }
 
   loadLoading() {
-    if(this.isLoading) {
+    if (this.isLoading) {
       this.container.classList.add('show-loading')
       this.tBody.innerHTML = `
         <div style="height: 100px" />
@@ -285,7 +280,7 @@ class TableDynamic {
       this.pagination = pagination;
     }
 
-    if(!this.isLoading) {
+    if (!this.isLoading) {
       this.reload();
     }
   }
