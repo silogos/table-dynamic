@@ -1,5 +1,5 @@
-# table-dynamic
-Table Dynamic Javascript
+# Table Dynamic JavaScript
+Table Dynamic with Javascript and HTML
 
 # Preview
 ## Table
